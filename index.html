@@ -1939,15 +1939,16 @@ updateCalc();
   box-shadow: 0 12px 48px rgba(15,31,61,0.22);
   overflow: hidden;
   border: 1px solid #dde3f0;
+  background: white;
 ">
   <openai-chatkit style="width: 100%; height: 100%;"></openai-chatkit>
 </div>
 
 <script>
-  // Chat toggle
   const chatToggle = document.getElementById('chat-toggle');
   const chatContainer = document.getElementById('chat-container');
   let chatOpen = false;
+  let chatInitialized = false;
 
   chatToggle.addEventListener('click', () => {
     chatOpen = !chatOpen;
@@ -1956,21 +1957,19 @@ updateCalc();
     chatToggle.style.background = chatOpen
       ? 'linear-gradient(135deg, #c89a2a 0%, #b8891f 100%)'
       : 'linear-gradient(135deg, #0f1f3d 0%, #1a3260 100%)';
-    if (chatOpen) initChatKit();
+    if (chatOpen && !chatInitialized) {
+      initChatKit();
+    }
   });
 
   chatToggle.addEventListener('mouseenter', () => {
     chatToggle.style.transform = 'scale(1.08)';
-    chatToggle.style.boxShadow = '0 6px 24px rgba(15,31,61,0.45)';
   });
-
   chatToggle.addEventListener('mouseleave', () => {
     chatToggle.style.transform = 'scale(1)';
-    chatToggle.style.boxShadow = '0 4px 20px rgba(15,31,61,0.35)';
   });
 
-  // ChatKit initialization
-  const DOMAIN_KEY = 'domain_pk_6a7659107e2081938479bc86effe2a060aa30519f13cf947';
+  const DOMAIN_KEY = 'domain_pk_6a76701549b08190aa25b5cb901c2da90810f8c8491b3e6d';
   const API_URL = 'https://openai.secondbrainos.com/chatkit';
 
   const customFetch = (url, options = {}) => {
@@ -2001,8 +2000,47 @@ updateCalc();
           density: 'spacious',
         },
         startScreen: {
-          greeting: 'Hi! I\'m Aria, the AI receptionist for Wise Automations. I can answer your questions, check availability, and book a discovery call for you. What would you like to do?',
-          
+          greeting: 'Hi! I\'m Aria, your AI receptionist at Wise Automations. How can I help you today?',
+        },
+        composer: {
+          placeholder: 'Ask me anything about Wise Automations...'
+        }
+      });
+      chatInitialized = true;
+    } else {
+      setTimeout(initChatKit, 50);
+    }
+  }
+
+  const customFetch = (url, options = {}) => {
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        'X-Domain-Key': DOMAIN_KEY,
+      },
+    });
+  };
+
+  function initChatKit() {
+    const kit = document.querySelector('openai-chatkit');
+    if (kit && kit.setOptions) {
+      kit.setOptions({
+        api: {
+          url: API_URL,
+          domainKey: DOMAIN_KEY,
+          fetch: customFetch,
+        },
+        theme: {
+          colorScheme: 'light',
+          color: {
+            accent: { primary: '#0f1f3d', level: 2 },
+          },
+          radius: 'round',
+          density: 'spacious',
+        },
+        startScreen: {
+          greeting: 'Hi! I\'m Aria, your AI receptionist at Wise Automations. How can I help you today?',
         },
         composer: {
           placeholder: 'Ask me anything about Wise Automations...'
